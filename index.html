@@ -5,10 +5,10 @@
 		<!-- Basic -->
 		<meta charset="UTF-8">
 
-		<title>Form Wizard | Okler Themes | Porto-Admin</title>
-		<meta name="keywords" content="HTML5 Admin Template" />
-		<meta name="description" content="Porto Admin - Responsive HTML5 Template">
-		<meta name="author" content="okler.net">
+		<title>Data Transfer</title>
+		<meta name="keywords" content="Data Transfer using PHP PDO" />
+		<meta name="description" content="Data transfer in PHP using PDO">
+		<meta name="author" content="https://github.com/JoshyFrancis/data_transfer">
 
 		<!-- Mobile Metas -->
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -45,7 +45,7 @@
 			<header class="header">
 				<div class="logo-container">
 					<a href="../" class="logo">
-						<img src="assets/images/logo.png" height="35" alt="Porto Admin" />
+						<img src="assets/images/logo.png" height="35" alt="Data Transfer" />
 					</a>
 					<div class="visible-xs toggle-sidebar-left" data-toggle-class="sidebar-left-opened" data-target="html" data-fire-event="sidebar-left-opened">
 						<i class="fa fa-bars" aria-label="Toggle sidebar"></i>
@@ -718,7 +718,11 @@
 				
 				</aside>
 				<!-- end: sidebar -->
-
+				<style>
+					.page-header h2{
+						border-bottom:0px;
+					}
+				</style>
 				<section role="main" class="content-body">
 					<header class="page-header">
 						<h2>Form Wizard</h2>
@@ -1440,5 +1444,86 @@
 
 		<!-- Examples -->
 		<script src="assets/javascripts/forms/examples.wizard.js"></script>
+		<script>
+			var page_header=document.querySelector('.page-header');
+			var span_page_progress=document.createElement('span');
+			var timer_indeterminate=0,left_indeterminate=0;
+					span_page_progress.style.cssText='left: -1px;position: absolute;bottom: -4px;width: 0%;border-bottom: 4px solid #0088cc;color: #FF5722;height: 10px;padding: 20px;';
+				page_header.appendChild(span_page_progress);
+				
+					function page_progress(per){
+						if(per===0){// || per===100){
+							span_page_progress.innerHTML='';
+						}else{
+							span_page_progress.innerHTML=per+'%';
+						}
+						span_page_progress.style.left='-1px';
+						span_page_progress.style.padding='20px';
+						span_page_progress.style.width=per+'%';
+					}
+					
+					function start_indeterminate(){
+						span_page_progress.innerHTML='';
+						span_page_progress.style.left='0%';
+						span_page_progress.style.padding='0';
+						span_page_progress.style.width='10%';
+							timer_indeterminate=setInterval(function(){
+								left_indeterminate+=5;
+									if(left_indeterminate>100){
+										left_indeterminate=0;
+									}
+								span_page_progress.style.left=left_indeterminate+'%';
+									
+							},40);
+					}
+					function stop_indeterminate(){
+						left_indeterminate-=5;
+						clearInterval(timer_indeterminate);
+						span_page_progress.innerHTML='';
+						span_page_progress.style.left='-1px';
+						span_page_progress.style.padding='0';
+						span_page_progress.style.width='0%';
+					}
+						//page_progress(10);
+			function make_ajax(url,a_data,success,error){
+					start_indeterminate();
+			   $.ajax({
+					url: url,
+					type: 'post',
+					dataType: 'text',
+					data: a_data,
+					success: function (s_data) {
+							stop_indeterminate();
+						alert(s_data);
+					},
+					error: function (xhr, ajaxOptions, thrownError) {
+						stop_indeterminate();
+						 
+					},
+					xhr: function () {
+						var xhr = new window.XMLHttpRequest();
+						//Download progress
+						xhr.addEventListener("progress", function (evt) {
+							if (evt.lengthComputable) {
+								var percentComplete =Math.round( (evt.loaded / evt.total)* 100);
+								page_progress(percentComplete);
+							}
+						}, false);
+						return xhr;
+					},
+					beforeSend: function () {
+
+					},
+					complete: function () {
+						stop_indeterminate();
+					},
+				});			
+			}
+				var url=location.toString().split('?')[0];
+					url=url.split('/');
+						url.pop();
+					url=url.join('/')+'/';
+				make_ajax(url+'process/',{});
+		</script>
 	</body>
 </html>
