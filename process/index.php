@@ -20,13 +20,35 @@ ini_set('display_errors', 1);
 	$response=[];
 	$response['success']=false;
 	$response['error']='Unknown error!';
-if(isset($_REQUEST['head'])){	
-	switch ($_REQUEST['head']) {
-		case 'test':
+if(isset($_REQUEST['action'])){	
+	switch ($_REQUEST['action']) {
+		case 'load':
 			$response['success']=true;
+		break;
+		case 'content':
+			echo get_view('register.php');
+			return;
 		break;
 	}
 }
+	function get_view($view,$data=[]){
+		$obLevel = ob_get_level();
+        ob_start();
+
+		foreach($data as $key=>$value){
+		    $$key = $value; 
+		}
+		
+        try {
+            include $view;
+        } catch (Exception $e) {
+			while (ob_get_level() > $obLevel) {
+				ob_end_clean();
+			}
+        }
+        //return ltrim(ob_get_clean());
+        return ob_get_clean(); 
+	}
  // alternative json_encode
 	function _json_encode($val){
 		if (is_string($val)) return '"'.addslashes($val).'"';
