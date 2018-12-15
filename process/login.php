@@ -1,5 +1,5 @@
 <div id="_header" style="display:none;">
-	<h2>Register</h2>				
+	<h2>Login</h2>				
 	<div class="right-wrapper pull-right">
 		<ol class="breadcrumbs">
 			<li>
@@ -7,8 +7,7 @@
 					<i class="fa fa-home"></i>
 				</a>
 			</li>
-			<li><span>Installation</span></li>
-			<li><span>Register</span></li>
+			<li><span>Login</span></li>
 		</ol>
 
 		<a class="sidebar-right-toggle" data-open="sidebar-right"><i class="fa fa-chevron-left"></i></a>
@@ -26,15 +25,10 @@
 		<li class="nav-parent nav-expanded nav-active">
 			<a>
 				<i class="fa fa-list-alt" aria-hidden="true"></i>
-				<span>Installation</span>
+				<span>Login</span>
 			</a>
 			<ul class="nav nav-children">
 				<li class="nav-active">
-					<a href="javascript:load_page('register');">
-						 Register
-					</a>
-				</li>
-				<li>
 					<a href="javascript:load_page('login');">
 						 Login
 					</a>

@@ -505,32 +505,36 @@
 			}
 			function reload_scripts(scripts){
 				var head = document.getElementsByTagName('head')[0];
-				var all_scripts=document.getElementsByTagName('script');
+				var all_scripts=document.scripts;//document.getElementsByTagName('script');//document.querySelectorAll('script');
 				scripts=scripts.split(',');
 					
 				for(var i=0;i<all_scripts.length;i++){
 					var script=all_scripts[i];
 					var script2=false;
-					if(script.src  && script.src!==''){
-						var src=script.src.split('/').pop();
-							
-						console.log(src);
+					var src=script.src.split('/').pop();
+					if(src!==''){	
+						//console.log(src);
 						for(var j=0;j<scripts.length;j++){
-							if(script.src.indexOf(scripts[j])!==-1){
+							if(src.indexOf(scripts[j])!==-1){
+								console.log(src);
 								//script2=script.cloneNode();
 								script2=document.createElement('script');
 									script2.type=script.type;
 									script2.src=script.src;
-									//script2.async=true;
+									script2.async=false;
 								var parentNode=script.parentNode;
 								parentNode.removeChild(script);
-									//script2.id='_script'+i;
+									script2.id='_script'+i;
+									var script =document.getElementById(script2.id);
+									if(script){
+										head.removeChild(script);
+									}
 									script2.onload = script2.onreadystatechange = function() {
 										if (!this.readyState || this.readyState == 'complete' ){
-										  alert(this.src);
+											//alert(this.src);
 										}
 									};
-									parentNode.appendChild(script2);
+									head.appendChild(script2);
 								break;
 							}
 						}
@@ -540,6 +544,8 @@
 			function load_html(html){
 				var _temp=document.getElementById('_temp');
 					_temp.innerHTML=html;
+					reload_scripts('nanoscroller,theme');
+					
 				var head = document.getElementsByTagName('head')[0];
 				var script =document.getElementById('_temp_scripts');
 					if(script){
@@ -554,12 +560,22 @@
 					}
 					head.appendChild(script);
 				_temp.innerHTML='';
-				reload_scripts('nanoscroller,theme');
+				
 			}
+			
 				var url=location.toString().split('?')[0];
 					url=url.split('/');
 						url.pop();
 					url=url.join('/')+'/';
+				
+				
+				function load_page(page){
+					make_ajax(url+'process/',{action:'page',page:page},function(data){
+						load_html(data);
+							
+					});
+				}
+				load_page('home');
 				make_ajax(url+'process/',{action:'load'},function(data){
 					try{
 						
@@ -568,11 +584,6 @@
 					}catch(e){
 					}
 				});
-				make_ajax(url+'process/',{action:'content'},function(data){
-					load_html(data);
-						
-				});
-				
 		</script>
 		<div id="_temp" style="display:none;"></div>
 	</body>
