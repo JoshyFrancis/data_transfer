@@ -155,7 +155,7 @@
 	</div>
 </div>
 <script>
-	alert('ok');
+	 
 		document.getElementById('page_header').innerHTML=document.getElementById('_header').innerHTML;
 		document.getElementById('page_content').innerHTML=document.getElementById('_content').innerHTML;
 		

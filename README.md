@@ -1,5 +1,5 @@
 ## data_transfer
-Databse import and export in PHP using **PDO** objects
+Database import and export in PHP using **PDO** objects
 
 Please visit [http://joshyfrancis.rf.gd/data_transfer](http://joshyfrancis.rf.gd/data_transfer)
 
