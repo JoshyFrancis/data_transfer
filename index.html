@@ -561,7 +561,67 @@
 				_temp.innerHTML='';
 				
 			}
-			
+			function ajax_form_post(form){
+				var params = [];
+				for(var i=0;i<form.length;i++){
+					var input=form[i];
+					var name=input.name;
+					var value=input.value;
+					switch(input.nodeName){//.toLowerCase()){
+						case 'SELECT':
+							switch(input.type){
+								case 'select-multiple':
+									for (var j=input.options.length-1;j>=0;j++) {
+										if (input.options[j].selected) {
+											value= input.options[j].value;
+											params.push(encodeURIComponent(name) + '=' + encodeURIComponent(value));
+										}
+									}
+								break;
+								case 'select-one':
+									params.push(encodeURIComponent(name) + '=' + encodeURIComponent(value));
+								break;
+							} 
+						break;
+						case 'INPUT':
+							switch(input.type){
+								case 'checkbox':case 'radio':
+									value=input.checked===true?value:'';
+								break;
+							}
+							params.push(encodeURIComponent(name) + '=' + encodeURIComponent(value));
+						break;
+						default:
+							params.push(encodeURIComponent(name) + '=' + encodeURIComponent(value));
+						break;
+					}
+				}
+						
+				var XHR ;
+				if (window.XMLHttpRequest) {
+					XHR = new XMLHttpRequest();
+				}else if(window.ActiveXObject) {
+					XHR = new ActiveXObject("Microsoft.XMLHTTP");
+				}
+				var urlEncodedData = "";
+				
+				urlEncodedData = params.join('&').replace(/%20/g, '+'); // parse object into urlEncoded String
+
+				XHR.addEventListener('error', function(event) {
+					console.log('Oops! Something went wrong.');
+				});
+
+				XHR.open('POST', form.action,true);
+				//XHR.setRequestHeader('Content-Type', 'application/json');
+				XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                XHR.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        var data=this.response;
+                        load_html(data);
+                    }
+                };
+				XHR.send(urlEncodedData); // send the form
+			}
 				var url=location.toString().split('?')[0];
 					url=url.split('/');
 						url.pop();
@@ -569,13 +629,13 @@
 				
 				
 				function load_page(page){
-					make_ajax(url+'process/',{action:'page',page:page},function(data){
+					make_ajax(url+'process/',{route:'page',page:page},function(data){
 						load_html(data);
 							
 					});
 				}
 				load_page('home');
-				make_ajax(url+'process/',{action:'load'},function(data){
+				make_ajax(url+'process/',{route:'load'},function(data){
 					try{
 						
 						data=JSON.parse(data);

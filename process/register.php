@@ -76,20 +76,33 @@
 							</li>
 						</ul>
 					</div>
-	
-					<form class="form-horizontal" novalidate="novalidate" >
+					<?php
+						$account_tab='active';
+						$profile_tab='';
+						$confirm_tab='';
+						$error='';
+						$success=false;
+							if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']!==$_REQUEST['password']){
+								$error='Password doesn\'t match';
+							}elseif(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']===$_REQUEST['password']){
+								$success=true;
+							}
+							
+					?>
+					<form class="form-horizontal" novalidate="novalidate" action="<?php echo $url.'process/';?>" method="post" >
+						<input type="hidden" name="route" id="route" value="register">
 						<div class="tab-content">
 							<div id="w4-account" class="tab-pane active">
 								<div class="form-group">
 									<label class="col-sm-3 control-label" for="w4-email">Email</label>
 									<div class="col-sm-9">
-										<input type="email" class="form-control" name="email" id="w4-email" required>
+										<input type="email" class="form-control" name="email" id="w4-email" value="<?php echo isset($_REQUEST['email'])?$_REQUEST['email']:'';?>" required>
 									</div>
 								</div>
 								<div class="form-group">
 									<label class="col-sm-3 control-label" for="w4-username">Username</label>
 									<div class="col-sm-9">
-										<input type="text" class="form-control" name="username" id="w4-username" required>
+										<input type="text" class="form-control" name="username" id="w4-username" value="<?php echo isset($_REQUEST['username'])?$_REQUEST['username']:'';?>" required>
 									</div>
 								</div>
 								<div class="form-group">
@@ -98,35 +111,48 @@
 										<input type="password" class="form-control" name="password" id="w4-password" required minlength="6">
 									</div>
 								</div>
+								<div class="form-group">
+									<label class="col-sm-3 control-label" for="w4-passwordconfirm">Confirm</label>
+									<div class="col-sm-9">
+										<input type="password" class="form-control" name="passwordconfirm" id="w4-passwordconfirm" required minlength="6">
+									</div>
+								</div>
 							</div>
 							<div id="w4-profile" class="tab-pane">
 								<div class="form-group">
-									<label class="col-sm-3 control-label" for="w4-first-name">First Name</label>
+									<label class="col-sm-3 control-label" for="w4-host">Host</label>
 									<div class="col-sm-9">
-										<input type="text" class="form-control" name="first-name" id="w4-first-name" required>
+										<input type="text" class="form-control" name="host" id="w4-host"  value="<?php echo isset($_REQUEST['host'])?$_REQUEST['host']:'';?>" required>
 									</div>
 								</div>
 								<div class="form-group">
-									<label class="col-sm-3 control-label" for="w4-last-name">Last Name</label>
+									<label class="col-sm-3 control-label" for="w4-dbname">Database</label>
 									<div class="col-sm-9">
-										<input type="text" class="form-control" name="last-name" id="w4-last-name" required>
+										<input type="text" class="form-control" name="dbname" id="w4-dbname"  value="<?php echo isset($_REQUEST['dbname'])?$_REQUEST['dbname']:'';?>" required>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-sm-3 control-label" for="w4-uid">Username</label>
+									<div class="col-sm-9">
+										<input type="text" class="form-control" name="uid" id="w4-uid"  value="<?php echo isset($_REQUEST['uid'])?$_REQUEST['uid']:'';?>" required>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-sm-3 control-label" for="w4-pwd">Password</label>
+									<div class="col-sm-9">
+										<input type="password" class="form-control" name="pwd" id="w4-pwd"  value="<?php echo isset($_REQUEST['pwd'])?$_REQUEST['pwd']:'';?>" required>
 									</div>
 								</div>
 							</div>
 							
 							<div id="w4-confirm" class="tab-pane">
-								<div class="form-group">
-									<label class="col-sm-3 control-label" for="w4-confirm">Confirm Password</label>
-									<div class="col-sm-9">
-										<input type="password" class="form-control" name="confirm" id="w4-confirm" required minlength="6">
-									</div>
-								</div>
+								
 								<div class="form-group">
 									<div class="col-sm-3"></div>
 									<div class="col-sm-9">
 										<div class="checkbox-custom">
-											<input type="checkbox" name="notify" id="w4-notify" >
-											<label for="w4-notify">Notify</label>
+											<input type="checkbox" name="notify" id="w4-notify" <?php echo isset($_REQUEST['notify']) && $_REQUEST['notify']!==''?'checked':'';?> value="1">
+											<label for="w4-notify">Notify through the mail when tasks are done</label>
 										</div>
 									</div>
 								</div>
@@ -134,7 +160,7 @@
 									<div class="col-sm-3"></div>
 									<div class="col-sm-9">
 										<div class="checkbox-custom">
-											<input type="checkbox" name="terms" id="w4-terms" required>
+											<input type="checkbox" name="terms" id="w4-terms" <?php echo isset($_REQUEST['terms']) && $_REQUEST['terms']!==''?'checked':'';?> value="1" required>
 											<label for="w4-terms">I agree to the terms of service</label>
 										</div>
 									</div>
@@ -187,6 +213,7 @@
 		ev.preventDefault();
 		var validated = $('#w4 form').valid();
 		if ( validated ) {
+			/*
 			new PNotify({
 				title: 'Congratulations',
 				text: 'You completed the wizard form.',
@@ -194,6 +221,11 @@
 				addclass: 'notification-success',
 				icon: 'fa fa-check'
 			});
+			*/
+			 
+			ajax_form_post($('#w4 form')[0]);
+		}else{
+			
 		}
 	});
 
@@ -209,6 +241,7 @@
 				$w4validator.focusInvalid();
 				return false;
 			}
+			
 		},
 		onTabClick: function( tab, navigation, index, newindex ) {
 			if ( newindex == index + 1 ) {
@@ -233,4 +266,29 @@
 			tab.nextAll().removeClass('completed');
 		}
 	});
+	<?php 
+		if($error!==''){
+	?>
+			setTimeout(function(){
+				new PNotify({
+					title: 'Error in registering...',
+					text: <?php echo json_encode($error);?>,
+					type: 'custom',
+					addclass: 'notification-error',
+					icon: 'fa fa-bug'
+				});
+			},100);
+	<?php
+		}elseif($success===true){
+	?>
+			new PNotify({
+				title: 'Congratulations',
+				text: 'You have completed registration. You will be registered by email activation.',
+				type: 'custom',
+				addclass: 'notification-success',
+				icon: 'fa fa-check'
+			});
+	<?php
+		}
+	?>
 </script>

@@ -119,8 +119,8 @@ error_reporting(E_ALL);
 	$response=[];
 	$response['success']=false;
 	$response['error']='Unknown error!';
-if(isset($_REQUEST['action'])){	
-	switch ($_REQUEST['action']) {
+if(isset($_REQUEST['route'])){	
+	switch ($_REQUEST['route']) {
 		case 'load':
 			$response['url']=$url;
 			$response['success']=true;
@@ -135,6 +135,10 @@ if(isset($_REQUEST['action'])){
 					$page='register';
 				}
 			echo get_view($page.'.php',['url'=>$url ]);
+			return;
+		break;
+		case 'register':
+			echo get_view('register.php',['url'=>$url ]);
 			return;
 		break;
 	}
