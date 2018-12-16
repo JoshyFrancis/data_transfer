@@ -13,6 +13,7 @@ Jesus Christ is the only savior, who will redeem you.
 ini_set('max_execution_time', 0);
 ini_set('html_errors', true);
 ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
  	
 		function get_ip_address() {
@@ -90,7 +91,30 @@ ini_set('display_errors', 1);
 
 	session_name("data_transfer");
 	session_start();
-
+		
+			$login=false;
+		$userID = 0;
+	   $username='';
+			if(isset($_SESSION['userID'])){
+				$userID = $_SESSION['userID'];
+				$login=true;
+					try{
+	 
+						$DBH = new \PDO( 'mysql:host=demo.cloudoux.com;dbname=demo.cloudoux.com' ,'remote_login_user'  ,'users@ClouDoux#7896'  );
+						$DBH->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION );
+							 
+							 $STH = $DBH->prepare('select username from developers where ID=? ' );
+							$STH->execute( [$userID ]);
+							$rows = $STH->fetchAll(\PDO::FETCH_OBJ);
+						if(count($rows)>0){
+							 $username=$rows[0]->username ;
+						}
+					}catch(\PDOException $e) {
+						//echo $e->getMessage()  ;
+						//exit;
+						 $error_message =$e->getMessage()  ;
+					}
+			}
 
 	$response=[];
 	$response['success']=false;
