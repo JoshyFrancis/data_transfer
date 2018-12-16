@@ -1,0 +1,7 @@
+#RewriteEngine On
+#RewriteRule ^(data|test|test2)\.sqlite3 index.php [L,R=301]
+#RewriteRule ^(data|test|test2)\.sqlite3 index.html [L,R=301]
+<Files "data.sqlite3">
+Order Allow,Deny
+Deny from all
+</Files>

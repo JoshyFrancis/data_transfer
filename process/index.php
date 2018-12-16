@@ -161,6 +161,10 @@ if(isset($_REQUEST['route'])){
         //return ltrim(ob_get_clean());
         return ob_get_clean(); 
 	}
+	function make_insert_query($cols){
+		return ' ('.$cols.')' . ' values ('. implode(',', array_fill(0, count(explode(',',$cols) ), '?')) .')' ;//
+	}
+
  // alternative json_encode
 	function _json_encode($val){
 		if (is_string($val)) return '"'.addslashes($val).'"';

@@ -85,7 +85,37 @@
 							if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']!==$_REQUEST['password']){
 								$error='Password doesn\'t match';
 							}else if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']===$_REQUEST['password']){
-								$success=true;
+								try{
+									$file_db = new PDO('sqlite:data.sqlite3');
+									// Set errormode to exceptions
+									//$file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+									$file_db->exec('CREATE TABLE IF NOT EXISTS users (
+										ID INTEGER PRIMARY KEY AUTOINCREMENT, 
+										email VARCHAR(96),
+										username VARCHAR(20),
+										password VARCHAR(40),
+										token TEXT,
+										notify INT,
+										date_added VARCHAR(20))');
+									$insert = 'INSERT INTO users'.make_insert_query('email,username,password,token,notify,date_added');
+									$stmt = $file_db->prepare($insert);
+									$row=[];
+									$row[]=$_REQUEST['email'];
+									$row[]=$_REQUEST['username'];
+									$row[]=password_hash($_REQUEST['password'], PASSWORD_BCRYPT, ['cost' => 10]);
+									$row[]=bin2hex(openssl_random_pseudo_bytes(16));
+									$row[]=$_REQUEST['notify'];
+									$row[]=date("Y-m-d h:i:s",time());
+									$stmt->execute($row);
+									$id=$file_db->lastInsertId();
+									$file_db = null;
+									
+									
+										$success=true;
+								}catch(PDOException $e) {
+									$error= $e->getMessage();
+								}
+								 
 							}
 							
 					?>
