@@ -84,7 +84,7 @@
 						$success=false;
 							if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']!==$_REQUEST['password']){
 								$error='Password doesn\'t match';
-							}elseif(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']===$_REQUEST['password']){
+							}else if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']===$_REQUEST['password']){
 								$success=true;
 							}
 							
@@ -279,11 +279,11 @@
 				});
 			},100);
 	<?php
-		}elseif($success===true){
+		}else if($success===true){
 	?>
 			new PNotify({
 				title: 'Congratulations',
-				text: 'You have completed registration. You will be registered by email activation.',
+				text: 'You have completed registration. Your registration will be completed by email activation.',
 				type: 'custom',
 				addclass: 'notification-success',
 				icon: 'fa fa-check'
