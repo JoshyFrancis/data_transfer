@@ -45,6 +45,84 @@
 	</ul>
 
 </div>	
+<?php
+	/*
+	mysql for MySQL (host, port, dbname, unix_socket)
+	pgsql for Postgres (host, port, dbname,user, password)
+	sqlite for SQLite (see notes below)
+	mssql or sybase or dblib for SQL Server and Sybase (host, dbname, charset, appname, secure)
+	firebird for Firebird and Interbase (dbname, charset, role)
+	informix for Informix (requires an odbc.ini file; refer to the linked manual page)
+	OCI for Oracle (dbname, charset)
+	odbc for ODBC (DSN, UID, PWD)
+	ibm for IBM DB2 (DSN or DRIVER, DATABASE, HOSTNAME, PORT, PROTOCOL)
+	*/
+	$dbtypes=[
+		'mysql'=>['MySQL','host,dbname,uid,pwd']
+		,'pgsql'=>['Postgres','host,dbname,uid,pwd']
+		,'mssql'=>['SQL Server','host,dbname,uid,pwd']
+		,'sqlite'=>['SQLite','dbname']
+	];
+	$db_errors=[
+			'host'=>'Server field is required'
+		];
+	$account_tab='active';
+	$profile_tab='';
+	$confirm_tab='';
+	$error='';
+	$success=false;
+		if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']!==$_REQUEST['password']){
+			$error='Password doesn\'t match';
+		}else if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']===$_REQUEST['password']){
+				$success=true;
+			$dbtype=$_REQUEST['dbtype'];
+					$fields=explode(',',$dbtypes[$dbtype][1]);
+				foreach($fields as $val){
+					if(!isset($_REQUEST[$val]) || $_REQUEST[$val]===''){
+						$error='Required field is missing.';
+						$success=false;
+						$account_tab='';
+						$profile_tab='active';
+						$confirm_tab='';
+						break;
+					}
+				}
+			if($success===true){
+					$success=false;
+				try{
+					$file_db = new PDO('sqlite:data.sqlite3');
+					// Set errormode to exceptions
+					//$file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+					$file_db->exec('CREATE TABLE IF NOT EXISTS users (
+						ID INTEGER PRIMARY KEY AUTOINCREMENT, 
+						email VARCHAR(96),
+						username VARCHAR(20),
+						password VARCHAR(40),
+						token TEXT,
+						notify INT,
+						date_added VARCHAR(20))');
+					$insert = 'INSERT INTO users'.make_insert_query('email,username,password,token,notify,date_added');
+					$stmt = $file_db->prepare($insert);
+					$row=[];
+					$row[]=$_REQUEST['email'];
+					$row[]=$_REQUEST['username'];
+					$row[]=password_hash($_REQUEST['password'], PASSWORD_BCRYPT, ['cost' => 10]);
+					$row[]=bin2hex(openssl_random_pseudo_bytes(16));
+					$row[]=$_REQUEST['notify'];
+					$row[]=date("Y-m-d h:i:s",time());
+					$stmt->execute($row);
+					$id=$file_db->lastInsertId();
+					
+					
+					$file_db = null;
+						$success=true;
+				}catch(PDOException $e) {
+					$error= $e->getMessage();
+				}
+			}
+		}
+		
+?>
 <div id="_content" style="display:none;">
 	<div class="row">
 		<div class="col-xs-12">
@@ -65,64 +143,21 @@
 							<div class="progress-indicator"></div>
 						</div>
 						<ul class="wizard-steps">
-							<li class="active">
+							<li class="<?php echo $account_tab;?>">
 								<a href="#w4-account" data-toggle="tab"><span>1</span>User Info</a>
 							</li>
-							<li>
+							<li class="<?php echo $profile_tab;?>">
 								<a href="#w4-profile" data-toggle="tab"><span>2</span>Server Info</a>
 							</li>
-							<li>
+							<li class="<?php echo $confirm_tab;?>">
 								<a href="#w4-confirm" data-toggle="tab"><span>3</span>Confirmation</a>
 							</li>
 						</ul>
 					</div>
-					<?php
-						$account_tab='active';
-						$profile_tab='';
-						$confirm_tab='';
-						$error='';
-						$success=false;
-							if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']!==$_REQUEST['password']){
-								$error='Password doesn\'t match';
-							}else if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']===$_REQUEST['password']){
-								try{
-									$file_db = new PDO('sqlite:data.sqlite3');
-									// Set errormode to exceptions
-									//$file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-									$file_db->exec('CREATE TABLE IF NOT EXISTS users (
-										ID INTEGER PRIMARY KEY AUTOINCREMENT, 
-										email VARCHAR(96),
-										username VARCHAR(20),
-										password VARCHAR(40),
-										token TEXT,
-										notify INT,
-										date_added VARCHAR(20))');
-									$insert = 'INSERT INTO users'.make_insert_query('email,username,password,token,notify,date_added');
-									$stmt = $file_db->prepare($insert);
-									$row=[];
-									$row[]=$_REQUEST['email'];
-									$row[]=$_REQUEST['username'];
-									$row[]=password_hash($_REQUEST['password'], PASSWORD_BCRYPT, ['cost' => 10]);
-									$row[]=bin2hex(openssl_random_pseudo_bytes(16));
-									$row[]=$_REQUEST['notify'];
-									$row[]=date("Y-m-d h:i:s",time());
-									$stmt->execute($row);
-									$id=$file_db->lastInsertId();
-									$file_db = null;
-									
-									
-										$success=true;
-								}catch(PDOException $e) {
-									$error= $e->getMessage();
-								}
-								 
-							}
-							
-					?>
 					<form class="form-horizontal" novalidate="novalidate" action="<?php echo $url.'process/';?>" method="post" >
 						<input type="hidden" name="route" id="route" value="register">
 						<div class="tab-content">
-							<div id="w4-account" class="tab-pane active">
+							<div id="w4-account" class="tab-pane <?php echo $account_tab;?>">
 								<div class="form-group">
 									<label class="col-sm-3 control-label" for="w4-email">Email</label>
 									<div class="col-sm-9">
@@ -138,44 +173,83 @@
 								<div class="form-group">
 									<label class="col-sm-3 control-label" for="w4-password">Password</label>
 									<div class="col-sm-9">
-										<input type="password" class="form-control" name="password" id="w4-password" required minlength="6">
+										<input type="password" class="form-control" name="password" id="w4-password" value="<?php echo isset($_REQUEST['password'])?$_REQUEST['password']:'';?>" required minlength="6">
 									</div>
 								</div>
 								<div class="form-group">
 									<label class="col-sm-3 control-label" for="w4-passwordconfirm">Confirm</label>
 									<div class="col-sm-9">
-										<input type="password" class="form-control" name="passwordconfirm" id="w4-passwordconfirm" required minlength="6">
+										<input type="password" class="form-control" name="passwordconfirm" id="w4-passwordconfirm" value="<?php echo isset($_REQUEST['passwordconfirm'])?$_REQUEST['passwordconfirm']:'';?>" required minlength="6">
 									</div>
 								</div>
 							</div>
-							<div id="w4-profile" class="tab-pane">
+							<div id="w4-profile" class="tab-pane <?php echo $profile_tab;?>">
+								<div class="form-group">
+									<label class="col-md-3 control-label">Database Type</label>
+									<div class="col-md-9">
+										<select data-plugin-selectTwo class="form-control populate" name="dbtype" id="w4-dbtype" onchange="check_db_required" >
+											<?php
+												foreach($dbtypes as $key=>$val){
+													
+													$selected=(isset($_REQUEST['dbtype']) && $_REQUEST['dbtype']===$key?'selected':(!isset($_REQUEST['dbtype']) && $key==='mysql'?'selected':''));
+													echo '<option value="'.$key.'" '.$selected.' required_fields="'.$val[1].'">'.$val[0].'</option>';
+												}
+											?>
+										</select>
+										<script>
+											function check_db_required(){
+												var all_fields='host,dbname,uid,pwd,port'.split(',');
+												var required_fields=this.options[this.selectedIndex].getAttribute('required_fields').split(',');
+												for(var i=0;i<all_fields.length;i++){
+													$(document.getElementById('w4-'+all_fields[i])).rules("remove");//.removeAttribute('required');
+												}
+												for(var i=0;i<required_fields.length;i++){
+													$(document.getElementById('w4-'+required_fields[i])).rules( "add", {
+													  required: true,
+													  messages: {
+														required: "This field is required.",
+													  }
+													});
+												}
+											}
+											////check_db_required.call(document.getElementById('w4-dbtype'));
+										</script>
+									</div>
+								</div>
+			
 								<div class="form-group">
 									<label class="col-sm-3 control-label" for="w4-host">Host</label>
 									<div class="col-sm-9">
-										<input type="text" class="form-control" name="host" id="w4-host"  value="<?php echo isset($_REQUEST['host'])?$_REQUEST['host']:'';?>" required>
+										<input type="text" class="form-control" name="host" id="w4-host" value="<?php echo isset($_REQUEST['host'])?$_REQUEST['host']:'';?>" >
 									</div>
 								</div>
 								<div class="form-group">
 									<label class="col-sm-3 control-label" for="w4-dbname">Database</label>
 									<div class="col-sm-9">
-										<input type="text" class="form-control" name="dbname" id="w4-dbname"  value="<?php echo isset($_REQUEST['dbname'])?$_REQUEST['dbname']:'';?>" required>
+										<input type="text" class="form-control" name="dbname" id="w4-dbname" value="<?php echo isset($_REQUEST['dbname'])?$_REQUEST['dbname']:'';?>" >
 									</div>
 								</div>
 								<div class="form-group">
 									<label class="col-sm-3 control-label" for="w4-uid">Username</label>
 									<div class="col-sm-9">
-										<input type="text" class="form-control" name="uid" id="w4-uid"  value="<?php echo isset($_REQUEST['uid'])?$_REQUEST['uid']:'';?>" required>
+										<input type="text" class="form-control" name="uid" id="w4-uid" value="<?php echo isset($_REQUEST['uid'])?$_REQUEST['uid']:'';?>" >
 									</div>
 								</div>
 								<div class="form-group">
 									<label class="col-sm-3 control-label" for="w4-pwd">Password</label>
 									<div class="col-sm-9">
-										<input type="password" class="form-control" name="pwd" id="w4-pwd"  value="<?php echo isset($_REQUEST['pwd'])?$_REQUEST['pwd']:'';?>" required>
+										<input type="password" class="form-control" name="pwd" id="w4-pwd" value="<?php echo isset($_REQUEST['pwd'])?$_REQUEST['pwd']:'';?>" >
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-sm-3 control-label" for="w4-port">Port(Optional)</label>
+									<div class="col-sm-9">
+										<input type="number" class="form-control" name="port" id="w4-port" value="<?php echo isset($_REQUEST['port'])?$_REQUEST['port']:'';?>" >
 									</div>
 								</div>
 							</div>
 							
-							<div id="w4-confirm" class="tab-pane">
+							<div id="w4-confirm" class="tab-pane <?php echo $confirm_tab;?>">
 								
 								<div class="form-group">
 									<div class="col-sm-3"></div>
@@ -222,11 +296,9 @@
 		document.getElementById('menu').innerHTML=document.getElementById('_menu').innerHTML;
 		document.getElementById('page_content').innerHTML=document.getElementById('_content').innerHTML;
 		
-	/*
-	Wizard #4
-	*/
-	var $w4finish = $('#w4').find('ul.pager li.finish'),
-		$w4validator = $("#w4 form").validate({
+	 
+	var $w4finish = $('#w4').find('ul.pager li.finish');
+	var	$w4validator = $("#w4 form").validate({
 		highlight: function(element) {
 			$(element).closest('.form-group').removeClass('has-success').addClass('has-error');
 		},
@@ -241,6 +313,9 @@
 
 	$w4finish.on('click', function( ev ) {
 		ev.preventDefault();
+			////$w4validator.resetForm();
+			//check_db_required.call(document.getElementById('w4-dbtype'));
+			
 		var validated = $('#w4 form').valid();
 		if ( validated ) {
 			/*
