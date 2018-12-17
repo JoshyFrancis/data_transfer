@@ -146,7 +146,7 @@
 					$row[]=date("Y-m-d h:i:s",time());
 					$stmt->execute($row);
 					$id=$file_db->lastInsertId();
-					var_dump($id);
+					//var_dump($id);
 					
 					$file_db = null;
 						$success=true;
@@ -360,6 +360,9 @@
 			element.parent().append( error );
 		}
 	});
+	$("#w4 form")[0].onchange= function (e) {
+	   form_changed=true;
+	};
 
 	$w4finish.on('click', function( ev ) {
 		ev.preventDefault();
@@ -379,6 +382,7 @@
 			*/
 			 
 			ajax_form_post($('#w4 form')[0]);
+			form_changed=false;
 		}else{
 			
 		}
@@ -424,15 +428,13 @@
 	<?php 
 		if($error!==''){
 	?>
-			setTimeout(function(){
-				new PNotify({
-					title: 'Error in registering...',
-					text: <?php echo json_encode($error);?>,
-					type: 'custom',
-					addclass: 'notification-error',
-					icon: 'fa fa-bug'
-				});
-			},100);
+			new PNotify({
+				title: 'Error in registering...',
+				text: <?php echo json_encode($error);?>,
+				type: 'custom',
+				addclass: 'notification-error',
+				icon: 'fa fa-bug'
+			});
 	<?php
 		}else if($success===true){
 	?>
@@ -443,6 +445,9 @@
 				addclass: 'notification-success',
 				icon: 'fa fa-check'
 			});
+			setTimeout(function(){
+				alert('redirect');
+			},3000);
 	<?php
 		}
 	?>

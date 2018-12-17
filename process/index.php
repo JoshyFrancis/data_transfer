@@ -15,7 +15,6 @@ ini_set('html_errors', true);
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
- 	
 		function get_ip_address() {
 				// check for shared internet/ISP IP
 				if (!empty($_SERVER['HTTP_CLIENT_IP']) && validate_ip($_SERVER['HTTP_CLIENT_IP'])) {
@@ -92,6 +91,16 @@ error_reporting(E_ALL);
 	session_name("data_transfer");
 	session_start();
 		
+set_error_handler("warning_handler", E_WARNING);
+function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext) { 
+	//throw new \Exception($errstr, $errno );
+	//throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+	//echo $errstr;
+		$errstr=str_replace('.php','',$errstr);
+	$e=new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+	echo get_view('error.php',['url'=>$url,'error_no'=>404,'exception'=>$e ]);
+	exit;
+}
 			$login=false;
 		$userID = 0;
 	   $username='';
@@ -134,11 +143,21 @@ if(isset($_REQUEST['route'])){
 				if($page==='home'){
 					$page='register';
 				}
-			echo get_view($page.'.php',['url'=>$url ]);
+			try{
+				echo get_view($page.'.php',['url'=>$url ]);
+			}catch(Exception $e){
+				echo $e->getMessage();
+				//echo get_view('error.php',['url'=>$url,'error_no'=>404,'exception'=>$e ]);
+				
+			}
 			return;
 		break;
 		case 'register':
 			echo get_view('register.php',['url'=>$url ]);
+			return;
+		break;
+		case 'login':
+			echo get_view('login.php',['url'=>$url ]);
 			return;
 		break;
 	}

@@ -411,6 +411,7 @@
 		<script src="assets/javascripts/forms/examples.wizard.js"></script>
 		-->
 		<script>
+			var form_changed=false;
 			var page_header=document.querySelector('.page-header');
 			 
 			var span_page_progress=document.createElement('span');
@@ -518,7 +519,7 @@
 						//console.log(src);
 						for(var j=0;j<scripts.length;j++){
 							if(src.indexOf(scripts[j])!==-1){
-								console.log(src);
+								//console.log(src);
 								//script2=script.cloneNode();
 								script2=document.createElement('script');
 									script2.type=script.type;
@@ -565,6 +566,7 @@
 				
 			}
 			function ajax_form_post(form){
+				start_indeterminate();
 				var params = [];
 				for(var i=0;i<form.length;i++){
 					var input=form[i];
@@ -611,6 +613,7 @@
 				urlEncodedData = params.join('&').replace(/%20/g, '+'); // parse object into urlEncoded String
 
 				XHR.addEventListener('error', function(event) {
+					stop_indeterminate();
 					console.log('Oops! Something went wrong.');
 				});
 
@@ -619,8 +622,10 @@
 				XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                 XHR.onreadystatechange = function () {
                     if (this.readyState === 4 && this.status === 200) {
+						stop_indeterminate();
                         var data=this.response;
                         load_html(data);
+                        
                     }
                 };
 				XHR.send(urlEncodedData); // send the form
@@ -632,6 +637,10 @@
 				
 				
 				function load_page(page){
+					if(form_changed===true){
+						alert('form_changed');
+						return;
+					}
 					make_ajax(url+'process/',{route:'page',page:page},function(data){
 						load_html(data);
 							
