@@ -64,7 +64,11 @@
 		,'sqlite'=>['SQLite','dbname']
 	];
 	$db_errors=[
-			'host'=>'Server field is required'
+			'host'=>'Host is required'
+			,'dbname'=>'Database is required'
+			,'uid'=>'Username is required'
+			,'pwd'=>'Password is required'
+			
 		];
 	$account_tab='active';
 	$profile_tab='';
@@ -79,7 +83,7 @@
 					$fields=explode(',',$dbtypes[$dbtype][1]);
 				foreach($fields as $val){
 					if(!isset($_REQUEST[$val]) || $_REQUEST[$val]===''){
-						$error='Required field is missing.';
+						$error=$db_errors[$val];
 						$success=false;
 						$account_tab='';
 						$profile_tab='active';
@@ -91,16 +95,30 @@
 					$success=false;
 				try{
 					$file_db = new PDO('sqlite:data.sqlite3');
-					// Set errormode to exceptions
-					//$file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-					$file_db->exec('CREATE TABLE IF NOT EXISTS users (
+					$file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+					$file_db->exec('CREATE TABLE IF NOT EXISTS users(
 						ID INTEGER PRIMARY KEY AUTOINCREMENT, 
 						email VARCHAR(96),
 						username VARCHAR(20),
 						password VARCHAR(40),
 						token TEXT,
 						notify INT,
-						date_added VARCHAR(20))');
+						date_added VARCHAR(20),
+						date_modified VARCHAR(20)
+						)');
+					$file_db->exec('CREATE TABLE IF NOT EXISTS servers(
+						ID INTEGER PRIMARY KEY AUTOINCREMENT, 
+						host VARCHAR(96),
+						dbname VARCHAR(40),
+						uid VARCHAR(40),
+						pwd VARCHAR(40),
+						port VARCHAR(10),
+						options TEXT,
+						is_default INT,
+						is_verified INT,
+						date_added VARCHAR(20),
+						date_modified VARCHAR(20)
+						)');
 					$insert = 'INSERT INTO users'.make_insert_query('email,username,password,token,notify,date_added');
 					$stmt = $file_db->prepare($insert);
 					$row=[];
@@ -112,7 +130,23 @@
 					$row[]=date("Y-m-d h:i:s",time());
 					$stmt->execute($row);
 					$id=$file_db->lastInsertId();
+					 
 					
+					$insert = 'INSERT INTO servers'.make_insert_query('host,dbname,uid,pwd,port,options,is_default,is_verified,date_added');
+					$stmt = $file_db->prepare($insert);
+					$row=[];
+					$row[]=$_REQUEST['host'];
+					$row[]=$_REQUEST['dbname'];
+					$row[]=$_REQUEST['uid'];
+					$row[]=$_REQUEST['pwd'];
+					$row[]=$_REQUEST['port'];
+					$row[]='';
+					$row[]='1';
+					$row[]='0';
+					$row[]=date("Y-m-d h:i:s",time());
+					$stmt->execute($row);
+					$id=$file_db->lastInsertId();
+					var_dump($id);
 					
 					$file_db = null;
 						$success=true;
@@ -296,7 +330,23 @@
 		document.getElementById('menu').innerHTML=document.getElementById('_menu').innerHTML;
 		document.getElementById('page_content').innerHTML=document.getElementById('_content').innerHTML;
 		
-	 
+	if ( $.isFunction($.fn[ 'select2' ]) ) {
+
+		$(function() {
+			$('[data-plugin-selectTwo]').each(function() {
+				var $this = $( this ),
+					opts = {};
+
+				var pluginOptions = $this.data('plugin-options');
+				if (pluginOptions)
+					opts = pluginOptions;
+
+				$this.themePluginSelect2(opts);
+			});
+		});
+
+	}
+	
 	var $w4finish = $('#w4').find('ul.pager li.finish');
 	var	$w4validator = $("#w4 form").validate({
 		highlight: function(element) {
