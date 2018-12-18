@@ -3,7 +3,7 @@
 	<div class="right-wrapper pull-right">
 		<ol class="breadcrumbs">
 			<li>
-				<a href="<?php echo $url;?>">
+				<a href="javascript:load_page('home');">
 					<i class="fa fa-home"></i>
 				</a>
 			</li>
@@ -147,9 +147,13 @@
 	var login_form=document.getElementById('login_form');
 	login_form.onchange= function (e) {
 	   form_changed=true;
+	   window.onbeforeunload = function(event) {event.returnValue = "Changes you made may not be saved.";	};
 	};
 	login_form.onsubmit=function(){
-		ajax_form_post(this);
+		ajax_form_post(this,function(){
+			//alert('success');
+			$.magnificPopup.close();
+		});
 		form_changed=false;
 		return false;
 	};

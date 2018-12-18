@@ -3,7 +3,7 @@
 	<div class="right-wrapper pull-right">
 		<ol class="breadcrumbs">
 			<li>
-				<a href="<?php echo $url;?>">
+				<a href="javascript:load_page('home');">
 					<i class="fa fa-home"></i>
 				</a>
 			</li>
@@ -362,6 +362,7 @@
 	});
 	$("#w4 form")[0].onchange= function (e) {
 	   form_changed=true;
+	   window.onbeforeunload = function(event) {event.returnValue = "Changes you made may not be saved.";};
 	};
 
 	$w4finish.on('click', function( ev ) {

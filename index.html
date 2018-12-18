@@ -410,8 +410,32 @@
 		<!--
 		<script src="assets/javascripts/forms/examples.wizard.js"></script>
 		-->
+		<style>
+			.loader {
+			  border: 16px solid #f3f3f3;
+			  border-radius: 50%;
+			  border-top: 16px solid blue;
+			  border-right: 16px solid green;
+			  border-bottom: 16px solid red;
+			  width: 120px;
+			  height: 120px;
+			  -webkit-animation: spin 2s linear infinite;
+			  animation: spin 2s linear infinite;
+			}
+
+			@-webkit-keyframes spin {
+			  0% { -webkit-transform: rotate(0deg); }
+			  100% { -webkit-transform: rotate(360deg); }
+			}
+
+			@keyframes spin {
+			  0% { transform: rotate(0deg); }
+			  100% { transform: rotate(360deg); }
+			}
+		</style>
 		<script>
 			var form_changed=false;
+			var page_loading=false;
 			var page_header=document.querySelector('.page-header');
 			 
 			var span_page_progress=document.createElement('span');
@@ -458,8 +482,147 @@
 						span_page_progress.style.width='0%';
 					}
 						//page_progress(10);
+				var confirmDialog = function(message, headline, cb) {
+					 var dialog ='';
+						dialog += '<div class="zoom-anim-dialog modal-block modal-block-primary modal-with-zoom-anim">';
+						dialog += '	<section class="panel">';
+						if (headline) {
+							dialog += '		<header class="panel-heading">';
+							dialog += '			<h2 class="panel-title">' + headline + '</h2>';
+							dialog += '		</header>';
+						}
+						dialog += '		<div class="panel-body">';
+						dialog += '			<div class="modal-wrapper">';
+						dialog += '				<div class="modal-icon">';
+						dialog += '					<i class="fa fa-question-circle"></i>';
+						dialog += '				</div>';
+						dialog += '				<div class="modal-text">';
+						dialog += '					<p>' + message + '</p>';
+						dialog += '				</div>';
+						dialog += '			</div>';
+						dialog += '		</div>';
+						dialog += '		<footer class="panel-footer">';
+						dialog += '			<div class="row">';
+						dialog += '				<div class="col-md-12 text-right">';
+						dialog += '					<button class="btn btn-primary modal-confirm">Confirm</button>';
+						dialog += '					<button class="btn btn-default modal-dismiss">Cancel</button>';
+						dialog += '				</div>';
+						dialog += '			</div>';
+						dialog += '		</footer>';
+						dialog += '	</section>';
+						dialog += '</div>';
+						
+				 
+					$.magnificPopup.open({
+						modal: true,
+						type: 'inline',
+						fixedContentPos: false,
+						fixedBgPos: true,
+						overflowY: 'auto',
+						closeBtnInside: true,
+						preloader: false,
+						midClick: true,
+						removalDelay: 300,
+						mainClass: 'my-mfp-zoom-in',
+						items: {
+							src: dialog,
+							type: 'inline'
+						},
+						callbacks: {
+							open: function() {
+								var $content = $(this.content);
+				 
+								$content.on('click', '.modal-confirm', function() {
+									if (typeof cb === 'function') {
+										cb();
+									}
+									$.magnificPopup.close();
+									$(document).off('keydown', keydownHandler);
+								});
+				 
+								$content.on('click', '.modal-dismiss', function() {
+									$.magnificPopup.close();
+									$(document).off('keydown', keydownHandler);
+								});
+				 
+								var keydownHandler = function (e) {
+									if (e.keyCode == 13) {
+										$content.find('.modal-confirm').click();
+										return false;
+									} else if (e.keyCode == 27) {
+										$content.find('.modal-dismiss').click();
+										return false;
+									}
+								};
+								$(document).on('keydown', keydownHandler);
+							}
+						},
+					});
+				};
+				var progressDialog = function(message, headline) {
+					 var dialog ='';
+						dialog += '<div class="zoom-anim-dialog modal-block modal-block-primary modal-with-zoom-anim">';
+						dialog += '	<section class="panel">';
+						if (headline) {
+							dialog += '		<header class="panel-heading">';
+							dialog += '			<h2 class="panel-title">' + headline + '</h2>';
+							dialog += '		</header>';
+						}
+						dialog += '		<div class="panel-body">';
+						dialog += '			<div class="modal-wrapper">';
+						dialog += '				<div class="modal-text">';
+						dialog += '					<p>' + message + '</p>';
+						dialog += '				</div>';
+						dialog += '			</div>';
+						dialog += '		</div>';
+						dialog += '	</section>';
+						dialog += '</div>';
+						
+				 
+					$.magnificPopup.open({
+						modal: true,
+						type: 'inline',
+						fixedContentPos: false,
+						fixedBgPos: true,
+						overflowY: 'auto',
+						closeBtnInside: true,
+						preloader: false,
+						midClick: true,
+						removalDelay: 300,
+						mainClass: 'my-mfp-zoom-in',
+						items: {
+							src: dialog,
+							type: 'inline'
+						},
+					});
+				};
+
 			function make_ajax(url,a_data,success,error){
 					start_indeterminate();
+					var stack_topleft = {"dir1": "down", "dir2": "right", "push": "top"};
+					var stack_bottomleft = {"dir1": "right", "dir2": "up", "push": "top"};
+					var stack_bottomright = {"dir1": "up", "dir2": "left", "firstpos1": 15, "firstpos2": 15};
+					var stack_bar_top = {"dir1": "down", "dir2": "right", "push": "top", "spacing1": 0, "spacing2": 0};
+					var stack_bar_bottom = {"dir1": "up", "dir2": "right", "spacing1": 0, "spacing2": 0};
+					var notice = new PNotify({
+						title: 'Loading...',
+						text: 'fetching contents...',//'<div class="loader" style="left: calc(50% - 60px);position: relative;" ></div>',
+						type: 'info',
+						icon: 'fa fa-spinner fa-spin',
+						addclass: 'click-2-close',
+						hide: false,
+						buttons: {
+							closer: false,
+							sticker: false
+						},
+						//nonblock: {nonblock: true,nonblock_opacity: .2},
+						//stack: stack_topleft,
+						//width: "70%"
+
+					});
+					notice.get().click(function() {
+						notice.remove();
+					});
 			   $.ajax({
 					url: url,
 					type: 'post',
@@ -467,14 +630,15 @@
 					data: a_data,
 					success: function (data) {
 							stop_indeterminate();
-								
+							notice.remove();
 						if(success){
 							success(data);
 						}
-						
 					},
 					error: function (xhr, ajaxOptions, thrownError) {
 						stop_indeterminate();
+						notice.remove();
+
 						if(error){
 							error(xhr, ajaxOptions, thrownError);
 						}else{
@@ -565,8 +729,10 @@
 				_temp.innerHTML='';
 				
 			}
-			function ajax_form_post(form){
+			function ajax_form_post(form,success){
 				start_indeterminate();
+				progressDialog('<div class="loader" style="left: calc(50% - 60px);position: relative;" ></div>','Uploading...');
+				
 				var params = [];
 				for(var i=0;i<form.length;i++){
 					var input=form[i];
@@ -614,7 +780,15 @@
 
 				XHR.addEventListener('error', function(event) {
 					stop_indeterminate();
-					console.log('Oops! Something went wrong.');
+					$.magnificPopup.close();
+					//console.log('Oops! Something went wrong.');
+					new PNotify({
+						title: 'Please try again.',
+						text: 'Error in uploading!',
+						type: 'custom',
+						addclass: 'notification-error',
+						icon: 'fa fa-bug'
+					});
 				});
 
 				XHR.open('POST', form.action,true);
@@ -625,8 +799,15 @@
 						stop_indeterminate();
                         var data=this.response;
                         load_html(data);
-                        
-                    }
+                        if(success){
+							success();
+						}else{
+							$.magnificPopup.close();
+						}
+                    }else if (this.readyState === 4 && this.status !== 200) {
+						stop_indeterminate();
+						$.magnificPopup.close();
+					}
                 };
 				XHR.send(urlEncodedData); // send the form
 			}
@@ -635,15 +816,29 @@
 						url.pop();
 					url=url.join('/')+'/';
 				
-				
+				//window.onbeforeunload = function(event) {event.returnValue = "Changes you made may not be saved.";};
 				function load_page(page){
-					if(form_changed===true){
-						alert('form_changed');
+					if(page_loading===true){
+						alert('page_loading');
 						return;
 					}
+					if(form_changed===true){
+						//alert('form_changed');
+						confirmDialog('Are you sure to change page?','Page changed!',function(){
+							window.onbeforeunload = null;
+							form_changed=false;
+							load_page(page);
+						});
+						
+						return;
+					}
+					window.onbeforeunload = null;
+					page_loading=true;
 					make_ajax(url+'process/',{route:'page',page:page},function(data){
 						load_html(data);
-							
+							page_loading=false;
+					},function(){
+						page_loading=false;
 					});
 				}
 				load_page('home');
