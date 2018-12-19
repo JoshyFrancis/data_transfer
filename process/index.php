@@ -134,6 +134,16 @@ function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext)
 			case 'load':
 				$response['url']=$url;
 				$response['success']=true;
+				keep_execution('Porgram running');
+				/*
+					setInterval(function(){
+						if(file_exists('test.txt')){
+							unlink('test.txt');
+						}else{
+							file_put_contents('test.txt','test');
+						}
+					}, 1000);
+				*/
 			break;
 			case 'page':
 				$page=isset($_REQUEST['page'])?$_REQUEST['page']:'home';
@@ -220,3 +230,45 @@ function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext)
 	
 	//echo json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); 
 	echo json_encode_e1($response);
+
+function setInterval($f, $milliseconds){
+    $seconds=(int)$milliseconds/1000;
+    while(true){
+        $f();
+        sleep($seconds);
+    }
+}
+
+//@@@@@@@@@@@@@@@@@@@@@ Begin Keep the execution after sending HTTP response @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
+ function keep_execution($text = null){
+    // check if fastcgi_finish_request is callable
+    if (is_callable('fastcgi_finish_request')) {
+        if ($text !== null) {
+            echo $text;
+        }
+        /*
+         * http://stackoverflow.com/a/38918192
+         * This works in Nginx but the next approach not
+         */
+        session_write_close();
+        fastcgi_finish_request();
+ 
+        return;
+    }
+    ignore_user_abort(true);
+    ob_start();
+    if ($text !== null) {
+        echo $text;
+    } 
+    $serverProtocol = filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING);
+    header($serverProtocol . ' 200 OK');
+    // Disable compression (in case content length is compressed).
+    header('Content-Encoding: none');
+    header('Content-Length: ' . ob_get_length());
+    // Close the connection.
+    header('Connection: close');
+    ob_end_flush();
+    ob_flush();
+    flush();
+}
+//@@@@@@@@@@@@@@@@@@@@@ End Keep the execution after sending HTTP response @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
