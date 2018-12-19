@@ -75,6 +75,7 @@
 	$confirm_tab='';
 	$error='';
 	$success=false;
+	unset($_SESSION['userID']);
 		if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']!==$_REQUEST['password']){
 			$error='Password doesn\'t match';
 		}else if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']===$_REQUEST['password']){
@@ -107,7 +108,8 @@
 						date_modified VARCHAR(20)
 						)');
 					$file_db->exec('CREATE TABLE IF NOT EXISTS servers(
-						ID INTEGER PRIMARY KEY AUTOINCREMENT, 
+						ID INTEGER PRIMARY KEY AUTOINCREMENT,
+						userID INTEGER,
 						host VARCHAR(96),
 						dbname VARCHAR(40),
 						uid VARCHAR(40),
@@ -130,11 +132,12 @@
 					$row[]=date("Y-m-d h:i:s",time());
 					$stmt->execute($row);
 					$id=$file_db->lastInsertId();
-					 
+					$_SESSION['userID']=$id;
 					
-					$insert = 'INSERT INTO servers'.make_insert_query('host,dbname,uid,pwd,port,options,is_default,is_verified,date_added');
+					$insert = 'INSERT INTO servers'.make_insert_query('userID,host,dbname,uid,pwd,port,options,is_default,is_verified,date_added');
 					$stmt = $file_db->prepare($insert);
 					$row=[];
+					$row[]=$id;
 					$row[]=$_REQUEST['host'];
 					$row[]=$_REQUEST['dbname'];
 					$row[]=$_REQUEST['uid'];
@@ -429,6 +432,8 @@
 	<?php 
 		if($error!==''){
 	?>
+			form_changed=true;
+			window.onbeforeunload = function(event) {event.returnValue = "Changes you made may not be saved.";	};
 			new PNotify({
 				title: 'Error in registering...',
 				text: <?php echo json_encode($error);?>,
@@ -439,6 +444,7 @@
 	<?php
 		}else if($success===true){
 	?>
+			/*
 			new PNotify({
 				title: 'Congratulations',
 				text: 'You have completed registration. Your registration will be completed by email activation.',
@@ -446,9 +452,33 @@
 				addclass: 'notification-success',
 				icon: 'fa fa-check'
 			});
-			setTimeout(function(){
-				alert('redirect');
-			},3000);
+			*/
+				form_changed=false;
+				window.onbeforeunload =null;
+			var notify=new PNotify({
+				title: 'Congratulations',
+				text: 'You have completed registration! You will be redireced to <a href="javascript:close_notify();">home</a> in <span id="notify_seonds">4 seconds</span>',
+				type: 'custom',
+				addclass: 'notification-success',
+				icon: 'fa fa-check'
+			});
+				notify.seconds=4;
+			
+			var timer=setInterval(function(){
+				form_changed=false;
+				window.onbeforeunload =null;
+				notify.seconds-=1;
+				if(notify.seconds>=0){
+					document.getElementById('notify_seonds').innerHTML=notify.seconds+' seconds';
+				}else{
+					close_notify();
+				}
+			},1000);
+			var close_notify=function(){
+				clearInterval(timer);
+				notify.remove();
+				load_page('home');
+			};
 	<?php
 		}
 	?>

@@ -104,25 +104,24 @@ function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext)
 			$login=false;
 		$userID = 0;
 	   $username='';
+	   $_SESSION['user']=null;
 			if(isset($_SESSION['userID'])){
-				$userID = $_SESSION['userID'];
-				$login=true;
-					try{
-	 
-						$DBH = new \PDO( 'mysql:host=demo.cloudoux.com;dbname=demo.cloudoux.com' ,'remote_login_user'  ,'users@ClouDoux#7896'  );
-						$DBH->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION );
-							 
-							 $STH = $DBH->prepare('select username from developers where ID=? ' );
-							$STH->execute( [$userID ]);
-							$rows = $STH->fetchAll(\PDO::FETCH_OBJ);
-						if(count($rows)>0){
-							 $username=$rows[0]->username ;
-						}
-					}catch(\PDOException $e) {
-						//echo $e->getMessage()  ;
-						//exit;
-						 $error_message =$e->getMessage()  ;
+					$userID = $_SESSION['userID'];
+				try{
+					$file_db = new PDO('sqlite:data.sqlite3');
+					$file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+					 
+					$stmt = $file_db->prepare('SELECT ID,username from users where ID=?');
+					$stmt->execute([$userID]);
+					$rows=$stmt->fetchAll(PDO::FETCH_ASSOC);
+					if(count($rows)>0){
+						$_SESSION['user']=$rows[0];	
+						$login=true;
 					}
+					$file_db = null;
+				}catch(PDOException $e) {
+					 
+				}
 			}
 
 	$response=[];
@@ -134,13 +133,15 @@ if(isset($_REQUEST['route'])){
 			$response['url']=$url;
 			$response['success']=true;
 		break;
-		case 'content':
-			echo get_view('register.php',['url'=>$url ]);
+		case 'logout':
+			session_destroy();
+			session_start();
+			echo get_view('login.php',['url'=>$url ]);
 			return;
 		break;
 		case 'page':
 			$page=isset($_REQUEST['page'])?$_REQUEST['page']:'home';
-				if($page==='home'){
+				if($page==='home' && $login===false){
 					$page='register';
 				}
 			try{

@@ -48,25 +48,31 @@
 <?php
 		$error='';
 		$success=false;
-	try{
-		$file_db = new PDO('sqlite:data.sqlite3');
-		$file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-		 
-		$stmt = $file_db->prepare('SELECT ID,password from users where email=?');
-		$stmt->execute([$_REQUEST['email']]);
-		$rows=$stmt->fetchAll(PDO::FETCH_ASSOC);
-		if(count($rows)>0){
-				$ID=$rows[0]['ID'];
-			if (password_verify($_REQUEST['password'], $rows[0]['password'])){
-				$success=true;
+		unset($_SESSION['userID']);
+	if(isset($_REQUEST['email']) && $_REQUEST['email']!=='' ){
+		try{
+			$file_db = new PDO('sqlite:data.sqlite3');
+			$file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+			 
+			$stmt = $file_db->prepare('SELECT ID,password from users where email=?');
+			$stmt->execute([$_REQUEST['email']]);
+			$rows=$stmt->fetchAll(PDO::FETCH_ASSOC);
+			if(count($rows)>0){
+					$ID=$rows[0]['ID'];
+				if (password_verify($_REQUEST['password'], $rows[0]['password'])){
+					$_SESSION['userID']=$ID;
+					$success=true;
+				}else{
+					$error='Authentication failed.';
+				}
 			}else{
-				$error='Authentication failed.';
+				$error='User not exists.';
 			}
+			
+			$file_db = null;
+		}catch(PDOException $e) {
+			$error= $e->getMessage();
 		}
-		
-		$file_db = null;
-	}catch(PDOException $e) {
-		$error= $e->getMessage();
 	}
 ?>
 <div id="_content" style="display:none;">
@@ -90,7 +96,7 @@
 									<div class="form-group mb-lg">
 										<label>Email</label>
 										<div class="input-group input-group-icon">
-											<input name="email" type="email" class="form-control input-lg" value="<?php echo isset($_REQUEST['email'])?$_REQUEST['email']:'';?>" />
+											<input name="email" type="email" class="form-control input-lg" value="<?php echo isset($_REQUEST['email'])?$_REQUEST['email']:'';?>" required />
 											<span class="input-group-addon">
 												<span class="icon icon-lg">
 													<i class="fa fa-user"></i>
@@ -105,7 +111,7 @@
 											<a href="javascript:load_page('forget_password');" class="pull-right">Lost Password?</a>
 										</div>
 										<div class="input-group input-group-icon">
-											<input name="password" type="password" class="form-control input-lg" value="<?php echo isset($_REQUEST['password'])?$_REQUEST['password']:'';?>" />
+											<input name="password" type="password" class="form-control input-lg" value="<?php echo isset($_REQUEST['password'])?$_REQUEST['password']:'';?>" required minlength="6" />
 											<span class="input-group-addon">
 												<span class="icon icon-lg">
 													<i class="fa fa-lock"></i>
@@ -145,22 +151,39 @@
 		document.getElementById('menu').innerHTML=document.getElementById('_menu').innerHTML;
 		document.getElementById('page_content').innerHTML=document.getElementById('_content').innerHTML;
 	var login_form=document.getElementById('login_form');
+	var	validator = $(login_form).validate({
+		highlight: function(element) {
+			$(element).closest('.form-group').removeClass('has-success').addClass('has-error');
+		},
+		success: function(element) {
+			$(element).closest('.form-group').removeClass('has-error');
+			$(element).remove();
+		},
+		//errorPlacement: function( error, element ) {
+		//	element.parent().append( error );
+		//}
+	});
 	login_form.onchange= function (e) {
 	   form_changed=true;
 	   window.onbeforeunload = function(event) {event.returnValue = "Changes you made may not be saved.";	};
 	};
 	login_form.onsubmit=function(){
-		ajax_form_post(this,function(){
-			//alert('success');
-			$.magnificPopup.close();
-		});
-		form_changed=false;
+		var validated = $(this).valid();
+		if ( validated ) {
+			ajax_form_post(this,function(){
+				//alert('success');
+				$.magnificPopup.close();
+			});
+			form_changed=false;
+		}
 		return false;
 	};
 	
 	<?php 
 		if($error!==''){
 	?>
+			form_changed=true;
+			window.onbeforeunload = function(event) {event.returnValue = "Changes you made may not be saved.";	};
 			new PNotify({
 				title: 'Error in login...',
 				text: <?php echo json_encode($error);?>,
@@ -172,16 +195,32 @@
 	<?php
 		}else if($success===true){
 	?>
-			new PNotify({
+				form_changed=false;
+				window.onbeforeunload =null;
+			var notify=new PNotify({
 				title: 'Congratulations',
-				text: 'Login success!',
+				text: 'Login success! You will be redireced to <a href="javascript:close_notify();">home</a> in <span id="notify_seonds">4 seconds</span>',
 				type: 'custom',
 				addclass: 'notification-success',
 				icon: 'fa fa-check'
 			});
-			setTimeout(function(){
-				alert('redirect');
-			},3000);
+				notify.seconds=4;
+			
+			var timer=setInterval(function(){
+				form_changed=false;
+				window.onbeforeunload =null;
+				notify.seconds-=1;
+				if(notify.seconds>=0){
+					document.getElementById('notify_seonds').innerHTML=notify.seconds+' seconds';
+				}else{
+					close_notify();
+				}
+			},1000);
+			var close_notify=function(){
+				clearInterval(timer);
+				notify.remove();
+				load_page('home');
+			};
 	<?php
 		}
 	?>
