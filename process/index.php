@@ -90,7 +90,9 @@ error_reporting(E_ALL);
 
 	session_name("data_transfer");
 	session_start();
-		
+	$lifetime=60*60*2;
+	setcookie(session_name(),session_id(),time()+$lifetime);
+  
 set_error_handler("warning_handler", E_WARNING);
 function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext) { 
 	//throw new \Exception($errstr, $errno );
@@ -124,45 +126,44 @@ function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext)
 				}
 			}
 
-	$response=[];
-	$response['success']=false;
-	$response['error']='Unknown error!';
-if(isset($_REQUEST['route'])){	
-	switch ($_REQUEST['route']) {
-		case 'load':
-			$response['url']=$url;
-			$response['success']=true;
-		break;
-		case 'logout':
-			session_destroy();
-			session_start();
-			echo get_view('login.php',['url'=>$url ]);
-			return;
-		break;
-		case 'page':
-			$page=isset($_REQUEST['page'])?$_REQUEST['page']:'home';
-				if($page==='home' && $login===false){
-					$page='register';
+		$response=[];
+		$response['success']=false;
+		$response['error']='Unknown error!';
+	if(isset($_REQUEST['route'])){	
+		switch ($_REQUEST['route']) {
+			case 'load':
+				$response['url']=$url;
+				$response['success']=true;
+			break;
+			case 'page':
+				$page=isset($_REQUEST['page'])?$_REQUEST['page']:'home';
+					if($page==='home' && $login===false){
+						$page='login';
+					}
+					if($page==='logout'){
+						session_destroy();
+						session_start();
+						$page='login';
+					}
+				try{
+					echo get_view($page.'.php',['url'=>$url ]);
+				}catch(Exception $e){
+					echo $e->getMessage();
+					//echo get_view('error.php',['url'=>$url,'error_no'=>404,'exception'=>$e ]);
+					
 				}
-			try{
-				echo get_view($page.'.php',['url'=>$url ]);
-			}catch(Exception $e){
-				echo $e->getMessage();
-				//echo get_view('error.php',['url'=>$url,'error_no'=>404,'exception'=>$e ]);
-				
-			}
-			return;
-		break;
-		case 'register':
-			echo get_view('register.php',['url'=>$url ]);
-			return;
-		break;
-		case 'login':
-			echo get_view('login.php',['url'=>$url ]);
-			return;
-		break;
+				return;
+			break;
+			case 'register':
+				echo get_view('register.php',['url'=>$url ]);
+				return;
+			break;
+			case 'login':
+				echo get_view('login.php',['url'=>$url ]);
+				return;
+			break;
+		}
 	}
-}
 	function get_view($view,$data=[]){
 		$obLevel = ob_get_level();
         ob_start();
@@ -186,35 +187,36 @@ if(isset($_REQUEST['route'])){
 	}
 
  // alternative json_encode
-	function _json_encode($val){
+	function json_encode_e1($val){
 		if (is_string($val)) return '"'.addslashes($val).'"';
 		if (is_numeric($val)) return $val;
 		if ($val === null) return 'null';
 		if ($val === true) return 'true';
 		if ($val === false) return 'false';
-
-		$assoc = false;
-		$i = 0;
+		//$res = array();
+		$assoc=false;
+		$i=0;
+		$res='';
 		foreach ($val as $k=>$v){
-			if ($k !== $i++){
-				$assoc = true;
-				break;
+			if($i>0){
+				$res.=',';
 			}
-		}
-		$res = array();
-		foreach ($val as $k=>$v){
-			$v = _json_encode($v);
+			if ($i===0 && $k !== $i++){
+				$assoc = true;
+			}
+			$v = json_encode_e1($v);
 			if ($assoc){
 				$k = '"'.addslashes($k).'"';
 				$v = $k.':'.$v;
 			}
-			$res[] = $v;
+			//$res[] = $v;
+			$res.=$v;
 		}
-		$res = implode(',', $res);
+		//$res = implode(',', $res);
 		return ($assoc)? '{'.$res.'}' : '['.$res.']';
 	}
 	
 	
 	
 	//echo json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); 
-	echo _json_encode($response);
+	echo json_encode_e1($response);
