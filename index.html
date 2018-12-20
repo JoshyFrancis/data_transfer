@@ -435,6 +435,7 @@
 			  100% { transform: rotate(360deg); }
 			}
 		</style>
+		<script src="scripts/cookies.min.js"></script>
 		<script>
 			var form_changed=false;
 			var page_loading=false;
@@ -444,7 +445,9 @@
 			var timer_indeterminate=0,left_indeterminate=0;
 					span_page_progress.style.cssText='left: -1px;position: absolute;bottom: -4px;width: 0%;border-bottom: 4px solid #0088cc;color: #FF5722;height: 10px;padding: 20px;';
 				page_header.appendChild(span_page_progress);
-				
+					
+					
+					
 					function page_progress(per){
 						
 						if(per===0){// || per===100){
@@ -625,12 +628,22 @@
 					notice.get().click(function() {
 						notice.remove();
 					});
+						if(typeof(a_data)==='string'){
+							a_data+='&Session-ID='+Cookies.get('Session-ID','');
+							a_data+='&Session-Time='+300;
+						}else if(typeof(a_data)==='object'){
+							a_data['Session-ID']=Cookies.get('Session-ID','');
+							a_data['Session-Time']=300;
+						}
 			   $.ajax({
 					url: url,
 					type: 'post',
 					dataType: 'text',
 					data: a_data,
-					success: function (data) {
+					success: function (data, status, xhr) {
+						//alert(xhr.getAllResponseHeaders());
+						//alert(xhr.getResponseHeader("Session-ID"));
+						Cookies.set('Session-ID',xhr.getResponseHeader("Session-ID"), { expires: 300 });
 							stop_indeterminate();
 							notice.remove();
 						if(success){
@@ -769,7 +782,8 @@
 						break;
 					}
 				}
-						
+				params.push(encodeURIComponent('Session-ID') + '=' + encodeURIComponent(Cookies.get('Session-ID','')));
+					
 				var XHR ;
 				if (window.XMLHttpRequest) {
 					XHR = new XMLHttpRequest();

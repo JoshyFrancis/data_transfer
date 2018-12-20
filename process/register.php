@@ -75,7 +75,7 @@
 	$confirm_tab='';
 	$error='';
 	$success=false;
-	unset($_SESSION['userID']);
+	session('userID',null);
 		if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']!==$_REQUEST['password']){
 			$error='Password doesn\'t match';
 		}else if(isset($_REQUEST['passwordconfirm']) && $_REQUEST['passwordconfirm']===$_REQUEST['password']){
@@ -132,7 +132,7 @@
 					$row[]=date("Y-m-d h:i:s",time());
 					$stmt->execute($row);
 					$id=$file_db->lastInsertId();
-					$_SESSION['userID']=$id;
+					session('userID',$id);
 					
 					$insert = 'INSERT INTO servers'.make_insert_query('userID,host,dbname,uid,pwd,port,options,is_default,is_verified,date_added');
 					$stmt = $file_db->prepare($insert);

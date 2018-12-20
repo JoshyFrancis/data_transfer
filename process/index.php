@@ -88,11 +88,38 @@ error_reporting(E_ALL);
 			$url_public=$url;
 
 
-	session_name("data_transfer");
-	session_start();
 	$lifetime=60*60*2;
-	setcookie(session_name(),session_id(),time()+$lifetime);
-  
+	if(isset($_REQUEST['Session-Time']) && $_REQUEST['Session-Time']!==''){
+		$lifetime=intval($_REQUEST['Session-Time']);
+	}
+	include 'Session.php';
+	$session=new Session($lifetime);
+	$session->write('test','ok');
+		
+	if(isset($_REQUEST['Session-ID']) && $_REQUEST['Session-ID']!==''){
+		Session::$id=$_REQUEST['Session-ID'];
+	}else{
+		Session::$id=uniqid('data_transfer');
+	}
+	
+	header('Access-Control-Expose-Headers: Session-ID');// to expose this header to javascript
+	header('Session-ID: '.Session::$id);
+
+
+/*
+	$file_db = new PDO('sqlite:data.sqlite3');
+	$file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+		 $stmt = $file_db->query('SELECT data FROM sessions WHERE id="test" LIMIT 1',PDO::FETCH_ASSOC);
+		 $rows = $stmt->fetchAll();
+		 var_dump($rows);
+		if($stmt->rowCount()>0){
+			
+			//
+			var_dump($stmt);
+		}
+exit;
+*/
+
 set_error_handler("warning_handler", E_WARNING);
 function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext) { 
 	//throw new \Exception($errstr, $errno );
@@ -106,9 +133,9 @@ function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext)
 			$login=false;
 		$userID = 0;
 	   $username='';
-	   $_SESSION['user']=null;
-			if(isset($_SESSION['userID'])){
-					$userID = $_SESSION['userID'];
+	   session('user',null);
+			if(session('userID')!==null){
+					$userID = session('userID');
 				try{
 					$file_db = new PDO('sqlite:data.sqlite3');
 					$file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
@@ -117,8 +144,9 @@ function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext)
 					$stmt->execute([$userID]);
 					$rows=$stmt->fetchAll(PDO::FETCH_ASSOC);
 					if(count($rows)>0){
-						$_SESSION['user']=$rows[0];	
+						session('user',$rows[0]);	
 						$login=true;
+						
 					}
 					$file_db = null;
 				}catch(PDOException $e) {
@@ -151,8 +179,8 @@ function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext)
 						$page='login';
 					}
 					if($page==='logout'){
-						session_destroy();
-						session_start();
+						Session::$id=uniqid('data_transfer');
+						$session->gc();
 						$page='login';
 					}
 				try{

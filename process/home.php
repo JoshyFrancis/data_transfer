@@ -68,14 +68,14 @@
 ?>
 <div id="_userbox">
 	<?php
-		if($_SESSION['user']!==null){
+		if(session('user')!==null){
 	?>
 	<a href="#" data-toggle="dropdown">
 		<figure class="profile-picture">
-			<img src="assets/images/!logged-user.jpg" alt="<?php echo $_SESSION['user']['username'];?>" class="img-circle" data-lock-picture="assets/images/!logged-user.jpg" />
+			<img src="assets/images/!logged-user.jpg" alt="<?php echo session('user')['username'];?>" class="img-circle" data-lock-picture="assets/images/!logged-user.jpg" />
 		</figure>
-		<div class="profile-info" data-lock-name="<?php echo $_SESSION['user']['username'];?>" data-lock-email="johndoe@okler.com">
-			<span class="name"><?php echo $_SESSION['user']['username'];?></span>
+		<div class="profile-info" data-lock-name="<?php echo session('user')['username'];?>" data-lock-email="johndoe@okler.com">
+			<span class="name"><?php echo session('user')['username'];?></span>
 			<span class="role">administrator</span>
 		</div>
 
@@ -103,7 +103,7 @@
 <div id="_content" style="display:none;">
 	Home
 	<?php
-		var_dump($_SESSION['user']);
+		var_dump(session('user'));
 	?>
 </div>
 <script>

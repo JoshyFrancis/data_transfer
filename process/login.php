@@ -48,7 +48,7 @@
 <?php
 		$error='';
 		$success=false;
-		unset($_SESSION['userID']);
+		session('userID',null);
 	if(isset($_REQUEST['email']) && $_REQUEST['email']!=='' ){
 		try{
 			$file_db = new PDO('sqlite:data.sqlite3');
@@ -60,7 +60,7 @@
 			if(count($rows)>0){
 					$ID=$rows[0]['ID'];
 				if (password_verify($_REQUEST['password'], $rows[0]['password'])){
-					$_SESSION['userID']=$ID;
+					session('userID',$ID);
 					$success=true;
 				}else{
 					$error='Authentication failed.';
@@ -74,6 +74,7 @@
 			$error= $e->getMessage();
 		}
 	}
+	
 ?>
 <div id="_content" style="display:none;">
 	<div class="row">
