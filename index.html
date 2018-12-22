@@ -475,16 +475,53 @@
 				
 			</div>
 		  <div id="clock_digital">
-					<div class="display">
-						<div class="weekdays"></div>
-						<div class="ampm"></div>
-						<div class="alarm"></div>
-						<div class="digits"></div>
+					
+			<!-- CLOCK -->
+			<div class="clock">
+				<!-- HOUR -->
+				<div class="numbers">
+					<p class="hours"></p>
+					<p class="placeholder">88</p>
+				</div>
+
+				<div class="colon">
+					<p>:</p>
+				</div>
+
+				<!-- MINUTE -->
+				<div class="numbers">
+					<p class="minutes"></p>
+					<p class="placeholder">88</p>
+				</div>
+
+				<div class="colon">
+					<p>:</p>
+				</div>
+
+				<!-- SECOND -->
+				<div class="numbers">
+					<p class="seconds"></p>
+					<p class="placeholder">88</p>
+				</div>
+				
+				<!-- AM / PM -->
+				<div class="am-pm">
+
+					<!-- AM -->
+					<div>
+						<p class="am">am</p>
 					</div>
-				</div>	
+
+					<!-- PM -->
+					<div>
+						<p class="pm">pm</p>
+					</div>
+				</div>
+
+			</div><!-- END CLOCK -->
+			</div>	
 		<script src="scripts/cookies.min.js"></script>
 		<script src="scripts/NonBlock.js"></script>
-		<script src="scripts/moment.min.js"></script>
 		<script src="scripts/clock.js"></script>
 		<script>
 			 

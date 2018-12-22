@@ -83,109 +83,70 @@
        
 }(jQuery));
 
-$(function(){
 
-    // Cache some selectors
+//invokes functions as soon as window loads
+window.onload = function(){
+	time();
+	ampm();
+	whatDay();
+	setInterval(function(){
+		time();
+		ampm();
+		whatDay();
+	}, 1000);
+};
 
-    var clock_digital = $('#clock_digital'),
-        alarm = clock_digital.find('.alarm'),
-        ampm = clock_digital.find('.ampm');
 
-    // Map digits to their names (this will be an array)
-    var digit_to_name = 'zero one two three four five six seven eight nine'.split(' ');
+//gets current time and changes html to reflect it
+function time(){
+	var date = new Date(),
+		hours = date.getHours(),
+		minutes = date.getMinutes(),
+		seconds = date.getSeconds();
 
-    // This object will hold the digit elements
-    var digits = {};
+	//make clock a 12 hour clock instead of 24 hour clock
+	hours = (hours > 12) ? (hours - 12) : hours;
+	hours = (hours === 0) ? 12 : hours;
 
-    // Positions for the hours, minutes, and seconds
-    var positions = [
-        'h1', 'h2', ':', 'm1', 'm2', ':', 's1', 's2'
-    ];
+	//invokes function to make sure number has at least two digits
+	hours = addZero(hours);
+	minutes = addZero(minutes);
+	seconds = addZero(seconds);
 
-    // Generate the digits with the needed markup,
-    // and add them to the clock_digital
+	//changes the html to match results
+	document.getElementsByClassName('hours')[0].innerHTML = hours;
+	document.getElementsByClassName('minutes')[0].innerHTML = minutes;
+	document.getElementsByClassName('seconds')[0].innerHTML = seconds;
+}
 
-    var digit_holder = clock_digital.find('.digits');
+//turns single digit numbers to two digit numbers by placing a zero in front
+function addZero (val){
+	return (val <= 9) ? ("0" + val) : val;
+}
 
-    $.each(positions, function(){
+//lights up either am or pm on clock
+function ampm(){
+	var date = new Date(),
+		hours = date.getHours(),
+		am = document.getElementsByClassName("am")[0].classList,
+		pm = document.getElementsByClassName("pm")[0].classList;
+	
+		
+	(hours >= 12) ? pm.add("light-on") : am.add("light-on");
+	(hours >= 12) ? am.remove("light-on") : pm.remove("light-on");
+}
 
-        if(this == ':'){
-            digit_holder.append('<div class="dots">');
-        }
-        else{
+//lights up what day of the week it is
+function whatDay(){
+	var date = new Date(),
+		currentDay = date.getDay(),
+		days = document.getElementsByClassName("day");
 
-            var pos = $('<div>');
+	//iterates through all divs with a class of "day"
+	for (x in days){
+		//list of classes in current div
+		var classArr = days[x].classList;
 
-            for(var i=1; i<8; i++){
-                pos.append('<span class="d' + i + '">');
-            }
-
-            // Set the digits as key:value pairs in the digits object
-            digits[this] = pos;
-
-            // Add the digit elements to the page
-            digit_holder.append(pos);
-        }
-
-    });
-
-    // Add the weekday names
-
-    var weekday_names = 'MON TUE WED THU FRI SAT SUN'.split(' '),
-        weekday_holder = clock_digital.find('.weekdays');
-
-    $.each(weekday_names, function(){
-        weekday_holder.append('<span>' + this + '</span>');
-    });
-
-    var weekdays = clock_digital.find('.weekdays span');
-
-    // Run a timer every second and update the clock_digital
-
-    (function update_time(){
-
-        // Use moment.js to output the current time as a string
-        // hh is for the hours in 12-hour format,
-        // mm - minutes, ss-seconds (all with leading zeroes),
-        // d is for day of week and A is for AM/PM
-
-        var now = moment().format("hhmmssdA");
-
-        digits.h1.attr('class', digit_to_name[now[0]]);
-        digits.h2.attr('class', digit_to_name[now[1]]);
-        digits.m1.attr('class', digit_to_name[now[2]]);
-        digits.m2.attr('class', digit_to_name[now[3]]);
-        digits.s1.attr('class', digit_to_name[now[4]]);
-        digits.s2.attr('class', digit_to_name[now[5]]);
-
-        // The library returns Sunday as the first day of the week.
-        // Stupid, I know. Lets shift all the days one position down, 
-        // and make Sunday last
-
-        var dow = now[6];
-        dow--;
-
-        // Sunday!
-        if(dow < 0){
-            // Make it last
-            dow = 6;
-        }
-
-        // Mark the active day of the week
-        weekdays.removeClass('active').eq(dow).addClass('active');
-
-        // Set the am/pm text:
-        ampm.text(now[7]+now[8]);
-
-        // Schedule this function to be run again in 1 sec
-        setTimeout(update_time, 1000);
-
-    })();
-
-    // Switch the theme
-
-    $('a.button').click(function(){
-        clock_digital.toggleClass('light dark');
-    });
-
-});
+		(classArr !== undefined) && ((x == currentDay) ? classArr.add("light-on") : classArr.remove("light-on"));
+	}
+}
