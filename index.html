@@ -630,10 +630,8 @@
 					});
 						if(typeof(a_data)==='string'){
 							a_data+='&Session-ID='+Cookies.get('Session-ID','');
-							a_data+='&Session-Time='+300;
 						}else if(typeof(a_data)==='object'){
 							a_data['Session-ID']=Cookies.get('Session-ID','');
-							a_data['Session-Time']=300;
 						}
 			   $.ajax({
 					url: url,
@@ -643,7 +641,7 @@
 					success: function (data, status, xhr) {
 						//alert(xhr.getAllResponseHeaders());
 						//alert(xhr.getResponseHeader("Session-ID"));
-						Cookies.set('Session-ID',xhr.getResponseHeader("Session-ID"), { expires: 300 });
+						Cookies.set('Session-ID',xhr.getResponseHeader("Session-ID"), { expires: Infinity });
 							stop_indeterminate();
 							notice.remove();
 						if(success){

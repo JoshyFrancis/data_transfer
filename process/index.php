@@ -88,10 +88,8 @@ error_reporting(E_ALL);
 			$url_public=$url;
 
 
-	$lifetime=60*60*2;
-	if(isset($_REQUEST['Session-Time']) && $_REQUEST['Session-Time']!==''){
-		$lifetime=intval($_REQUEST['Session-Time']);
-	}
+	$lifetime=60;//60*60*2;
+		
 	include 'Session.php';
 	$session=new Session($lifetime);
 	$session->write('test','ok');
@@ -153,7 +151,7 @@ function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext)
 					 
 				}
 			}
-
+	
 		$response=[];
 		$response['success']=false;
 		$response['error']='Unknown error!';
@@ -179,8 +177,9 @@ function warning_handler($errno, $errstr, $errfile, $errline, array $errcontext)
 						$page='login';
 					}
 					if($page==='logout'){
+						$session->destroy(Session::$id);
 						Session::$id=uniqid('data_transfer');
-						$session->gc();
+						
 						$page='login';
 					}
 				try{

@@ -30,7 +30,7 @@ class Session{
 		$stmt = $this->database->query('SELECT date_access FROM sessions WHERE id="'.$id.'" LIMIT 1',\PDO::FETCH_ASSOC);
 		$rows =$stmt!==false?$stmt->fetchAll():[];
 		if(count($rows)>0){
-			//$date_access=intval($rows[0]['date_access']);// extends session time
+			//$date_access=intval($rows[0]['date_access']);// prevent extending session time
 		}
 		$row=[];
 		$row[] = $id;
