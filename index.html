@@ -434,9 +434,60 @@
 			  0% { transform: rotate(0deg); }
 			  100% { transform: rotate(360deg); }
 			}
+			
+			.intheway {
+			  background-color: #F7FF95;
+			  color: #838200;
+			  border: 1px solid #838200;
+			  border-radius: 5px;
+			  padding: 12px;
+			  box-shadow: 0px 2px 30px 5px rgba(0,0,0,0.3);
+			}
+			.intheway.first {
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				height: 350px;
+				width: 350px;
+				z-index: 10000;
+				
+			}
+			.clock_session{
+				padding: 0.5em;
+			  min-width: 115px;
+			  width: 350px;
+			  max-width: 800px;
+			  border-right: 2px dotted gray;
+			  float: left;
+			}
 		</style>
+		<link rel="stylesheet" href="scripts/clock.css">
+			<div class="nonblock intheway first">
+				 
+				<section>
+					<div id="clock">
+						<div id="hour"></div>
+						<div id="minute"></div>
+						<div id="second"></div>
+						<div id="center"></div>
+					</div>
+				</section>
+				
+			</div>
+		  <div id="clock_digital">
+					<div class="display">
+						<div class="weekdays"></div>
+						<div class="ampm"></div>
+						<div class="alarm"></div>
+						<div class="digits"></div>
+					</div>
+				</div>	
 		<script src="scripts/cookies.min.js"></script>
+		<script src="scripts/NonBlock.js"></script>
+		<script src="scripts/moment.min.js"></script>
+		<script src="scripts/clock.js"></script>
 		<script>
+			 
 			var form_changed=false;
 			var page_loading=false;
 			var page_header=document.querySelector('.page-header');
